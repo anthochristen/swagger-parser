@@ -29,6 +29,8 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.parser.ResolverCache;
 import io.swagger.v3.parser.models.RefFormat;
 import io.swagger.v3.parser.models.RefType;
+import io.swagger.v3.parser.util.RefUtils;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -827,6 +829,9 @@ public final class ExternalRefProcessor {
             }
             if(parameter.getSchema() != null){
                 processRefSchemaObject(parameter.getSchema(), $ref);
+            }
+            if(parameter.getExamples() != null) {
+               processRefExamples(parameter.getExamples(), $ref);
             }
         }
 
