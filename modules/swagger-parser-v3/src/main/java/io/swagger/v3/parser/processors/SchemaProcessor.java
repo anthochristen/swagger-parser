@@ -157,8 +157,10 @@ public class SchemaProcessor {
                     }
                 }
             }
-        }if(composedSchema.getOneOf() != null){
-            final List<Schema> schemas = composedSchema.getOneOf();
+        }
+        if(composedSchema.getOneOf() != null || composedSchema.getAnyOf() != null){
+            final List<Schema> schemas = composedSchema.getOneOf() != null ?
+                    composedSchema.getOneOf() : composedSchema.getAnyOf();
             if (schemas != null) {
                 for (Schema schema : schemas) {
                     if (schema.get$ref() != null) {
@@ -171,19 +173,7 @@ public class SchemaProcessor {
                     }
                 }
             }
-        }if(composedSchema.getAnyOf() != null){
-            final List<Schema> schemas = composedSchema.getAnyOf();
-            if (schemas != null) {
-                for (Schema schema : schemas) {
-                    if (schema.get$ref() != null) {
-                        processReferenceSchema(schema);
-                    } else {
-                        processSchemaType(schema);
-                    }
-                }
-            }
         }
-
     }
 
     private void changeDiscriminatorMapping(ComposedSchema composedSchema, String oldRef, String newRef) {

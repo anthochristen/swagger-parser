@@ -19,6 +19,7 @@ import io.swagger.v3.parser.ResolverCache;
 import io.swagger.v3.parser.models.RefFormat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -256,15 +257,31 @@ public class PathsProcessor {
                 for (Schema innerModel : composedSchema.getAllOf()) {
                     updateRefs(innerModel, pathRef);
                 }
-            }if (composedSchema.getAnyOf() != null) {
-                for(Schema innerModel : composedSchema.getAnyOf()) {
+            }
+            if (composedSchema.getAnyOf() != null || composedSchema.getOneOf() != null) {
+                // Map to cache old - new refs in composed schemas
+                Map<String, String> refMappings = composedSchema.getDiscriminator() != null &&
+                        composedSchema.getDiscriminator().getMapping() != null ? new HashMap<>() : null;
+                List<Schema> schemas = composedSchema.getAnyOf() != null ? composedSchema.getAnyOf()
+                        : composedSchema.getOneOf();
+                for (Schema innerModel : schemas) {
+                    String oldRef = innerModel.get$ref();
                     updateRefs(innerModel, pathRef);
+                    if(oldRef != null && refMappings != null && !oldRef.equals(innerModel.get$ref())) {
+                        refMappings.put(oldRef, innerModel.get$ref());
+                    }
                 }
-            }if (composedSchema.getOneOf() != null) {
-                for (Schema innerModel : composedSchema.getOneOf()) {
-                    updateRefs(innerModel, pathRef);
+                // Update refs in discriminator mappings
+                if(refMappings != null && !refMappings.isEmpty()) {
+                    Map<String, String> discriminatorMappings = composedSchema.getDiscriminator().getMapping();
+                    for(String key : discriminatorMappings.keySet()) {
+                        if(refMappings.containsKey(discriminatorMappings.get(key))) {
+                            discriminatorMappings.put(key, refMappings.get(discriminatorMappings.get(key)));
+                        }
+                    }
                 }
             }
+
         }
         else if(model instanceof ArraySchema) {
             ArraySchema arraySchema = (ArraySchema) model;
