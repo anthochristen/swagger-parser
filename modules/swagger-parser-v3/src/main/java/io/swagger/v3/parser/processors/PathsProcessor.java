@@ -156,6 +156,9 @@ public class PathsProcessor {
                 for (String name : callbacks.keySet()) {
                     Callback callback = callbacks.get(name);
                     if (callback != null) {
+                        if(callback.get$ref() != null) {
+                            callback.set$ref(computeRef(callback.get$ref(), pathRef));
+                        }
                         for(String callbackName : callback.keySet()) {
                             PathItem pathItem = callback.get(callbackName);
                             updateRefs(pathItem,pathRef);
