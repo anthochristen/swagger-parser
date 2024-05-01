@@ -224,13 +224,11 @@ public final class ExternalRefProcessor {
                             .filter(Objects::nonNull)
                             .flatMap(Collection::stream)
                             .forEach(s -> {
-                                if (s.get$ref() != null){
-                                    if (s.get$ref() != null){
+                                    if (s.get$ref() != null) {
                                         processRefSchema(s, file);
-                                    }else{
+                                    } else {
                                         processSchema(s, file);
                                     }
-                                }
                             });
                 } else {
                     processProperties(arraySchema.getItems().getProperties() ,file);
@@ -256,7 +254,6 @@ public final class ExternalRefProcessor {
             }
             if (property instanceof ComposedSchema) {
                 ComposedSchema composed = (ComposedSchema) property;
-                // Map to cache old - new refs in composed schemas
                 final Map<String, String> refMap = Optional.ofNullable(property.getDiscriminator())
                                 .map(Discriminator::getMapping).orElse(Collections.emptyMap()).entrySet()
                                 .stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
@@ -938,18 +935,19 @@ public final class ExternalRefProcessor {
             } else {
                 for (String path : callback.keySet()) {
                     PathItem pathItem = callback.get(path);
-                    if(pathItem.get$ref() != null) {
-                        RefFormat pathRefFormat = computeRefFormat(pathItem.get$ref());
-                        String path$ref = pathItem.get$ref();
-                        if (isAnExternalRefFormat(refFormat)) {
-                            pathItem = this.processRefToExternalPathItem(path$ref, pathRefFormat);
+                    if(pathItem != null) {
+                        if (pathItem.get$ref() != null) {
+                            RefFormat pathRefFormat = computeRefFormat(pathItem.get$ref());
+                            String path$ref = pathItem.get$ref();
+                            if (isAnExternalRefFormat(refFormat)) {
+                                pathItem = this.processRefToExternalPathItem(path$ref, pathRefFormat);
+                            } else {
+                                pathItem = cache.loadRef(pathItem.get$ref(), refFormat, PathItem.class);
+                            }
+                            callback.put(path, pathItem);
                         } else {
-                            pathItem = cache.loadRef(pathItem.get$ref(), refFormat, PathItem.class);
+                            this.processPathItem(pathItem, $ref);
                         }
-
-                        callback.put(path, pathItem);
-                    } else {
-                        this.processPathItem(pathItem, $ref);
                     }
                 }
             }
